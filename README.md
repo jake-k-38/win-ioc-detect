@@ -12,3 +12,7 @@ https://gmuisg.org/log4j-detect/
 # https://www.lansweeper.com/report/log4j-event-log-audit/
 # Got the idea from https://github.com/Neo23x0/log4shell-detector
 # You can add IOC patterns as the obfuscation of the reverse shells get tougher and more sophisticated
+
+
+Changelog: 12-15-2021 Added output saving to C directory, improved detection with obfuscation by splitting string at
+‘}$’ and ‘:’ to detect obfuscation with {[upper|lower]:x} and {::-n}
