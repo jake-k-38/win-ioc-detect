@@ -2,7 +2,6 @@
 Powershell Log4j Exploit detection
 
 
-#///////////////////////////////////////////////////////////////////////////////////////////////////
 # *** THIS MODULE IS REQUIRED FOR SCRIPT TO RUN ***
 # Get-Base64RegularExpression https://www.leeholmes.com/searching-for-content-in-base-64-strings/
 # Type in powershell Install-Script Get-Base64RegularExpression.ps1
