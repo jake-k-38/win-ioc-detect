@@ -18,5 +18,9 @@ You can add IOC patterns as the obfuscation of the reverse shells get tougher an
 
 
 Changelog: 
-12-15-2021: Added output saving to C directory, improved detection with obfuscation by splitting string at
+12-15-2021: 
+Added output saving to C directory, improved detection with obfuscation by splitting string at
 ‘}$’ and ‘:’ to detect obfuscation with {[upper|lower]:x} and {::-n}
+
+12-16-2021:
+Added searching through AD FS Auditing ID 403 (RequestReceivedSuccessAudit)
