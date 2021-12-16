@@ -21,7 +21,9 @@ $IOCPatterns = ('jndi:ldap:',
  'Reference Class Name: foo')
  
  $log4j_temp = ''
- $log4j_temp2 = ''
+ $log4j_adtemp = ''
+ $log4j_base64 = ''
+ $log4j_base64ad = ''
  $datestring = (Get-Date).ToString('s').Replace(':','-') 
  
  $saveToFile = 'True'
@@ -44,6 +46,13 @@ $filter = @{
   ID = 4688 #New process eventID
   StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
 }
+
+$adfsfilter = @{ 
+  LogName = 'AD FS Auditing'
+  ID = 403 #RequestReceivedSuccessAudit
+  StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
+}
+
 $Width = -1 * ((measure-object -maximum length).maximum + 1)
 
 filter MultiSelect-String( [string[]]$Patterns ) {
@@ -86,15 +95,20 @@ filter MultiSelect-Base64String( [string[]]$Patterns ) {
   }
 }
 
-Write-Warning("Checking for suspicious log4j events:")
+Write-Warning("Checking for suspicious log4j events (EventID 4688, ADFS 403):")
 $log4j_temp = Get-WinEvent -FilterHashtable $filter | Select-Object -ExpandProperty Message | MultiSelect-String $IOCPatterns
+$log4j_adtemp = Get-WinEvent -FilterHashtable $adfsfilterfilter | Select-Object -ExpandProperty Message | MultiSelect-String $IOCPatterns
 Write-Output($log4j_temp)
+Write-Output($log4j_adtemp)
 
 Write-Warning("Checking for suspicious Base64 encoded log4j events:")
-$log4j_temp2 = Get-WinEvent -FilterHashtable $filter | Select-Object -ExpandProperty Message | MultiSelect-Base64String $IOCPatterns
+$log4j_base64 = Get-WinEvent -FilterHashtable $filter | Select-Object -ExpandProperty Message | MultiSelect-Base64String $IOCPatterns
+$log4j_base64ad = Get-WinEvent -FilterHashtable $filter | Select-Object -ExpandProperty Message | MultiSelect-Base64String $IOCPatterns
 
 
 if($saveToFile){
 	$log4j_temp | out-file -Append -FilePath $savedir
-	$log4j_temp2 | out-file -Append -FilePath $savedir2
+	$log4j_adtemp | out-file -Append -FilePath $savedir
+	$log4j_base64 | out-file -Append -FilePath $savedir2
+	$log4j_base64ad | out-file -Append -FilePath $savedir2
 }
