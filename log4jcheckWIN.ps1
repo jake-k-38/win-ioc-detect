@@ -19,7 +19,8 @@ $IOCPatterns = ('jndi:ldap:',
  'jndi:ldap://127.0.0.1:1099/obj',
  'at java.naming/com.sun.jndi.url.ldap.ldapURLContext.lookup',
  'log4j.core.lookup.JndiLookup.lookup',
- 'Reference Class Name: foo')
+ 'Reference Class Name: foo',
+ 'base64:')
  
  $log4j_temp = ''
  $log4j_adtemp = ''
