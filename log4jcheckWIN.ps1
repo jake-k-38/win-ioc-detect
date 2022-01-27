@@ -2,7 +2,7 @@
 .SYNOPSIS
 Log4Shell Powershell Windows Detection Script
 .DESCRIPTION
-Uses known Log4JShell IOC strings and common exploit patterns in APTs to find signs of compromise. Script will check for obfuscation and Base64 encoding.
+Uses known Log4JShell IOC strings and common exploit patterns in APTs to find signs of compromise on a windows machine. Script will quickly check for obfuscation and Base64 encoding.
 The script will search through the following event viewer logs:
 (Audit Process Creation logging) Audit event 4688
 (Audit Other Object Access Events) Audit event 4698
@@ -36,6 +36,25 @@ $savedir2 = 'C:\ioc_log4jScanBase64_' + $datestring + '.txt'
 $outputGrid = 'True'
 $saveToFile = 'False'
 $scanADFSLogs = 'False' #Enable this if you need it
+
+
+$processfilter = @{
+  LogName = 'Security'
+  ID = 4688 #New process eventID
+  StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
+}
+
+$taskfilter = @{
+  LogName = 'Security'
+  ID = 4698 #New ScheduledTasks
+  StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
+}
+
+$adfsfilter = @{
+  LogName = 'AD FS/Admin'
+  ID = 403 #RequestReceivedSuccessAudit
+  StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
+}
 
 $IOCPatterns = ('jndi:ldap:',
   'jndi:rmi:/',
@@ -95,24 +114,6 @@ $ioc_task = ''
 $ioc_base64 = ''
 $log4j_base64 = ''
 $log4j_base64ad = ''
-
-$processfilter = @{
-  LogName = 'Security'
-  ID = 4688 #New process eventID
-  StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
-}
-
-$taskfilter = @{
-  LogName = 'Security'
-  ID = 4698 #New ScheduledTasks
-  StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
-}
-
-$adfsfilter = @{
-  LogName = 'AD FS/Admin'
-  ID = 403 #RequestReceivedSuccessAudit
-  StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
-}
 
 $Width = -1 * ((Measure-Object -Maximum length).maximum + 1)
 
