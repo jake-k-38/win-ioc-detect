@@ -80,12 +80,14 @@ $IOCPatterns = ('jndi:ldap:',
   'log4j.core.lookup.JndiLookup.lookup',
   'Reference Class Name: foo',
   'base64:',
-  '<Hidden>true</Hidden>',#Next 15 strings are common in APTs in schtasks on infected machines
+  '<Hidden>true</Hidden>',#Next 40 strings are common in APTs in schtasks/new process creation on infected machines
   '-WindowStyle Hidden',
   'powershell/w 01',
   'powershell/w 01 /ep 0/nop/c',
   'powershell.exe -exec bypass',
   'powershell -c iex',
+  'powershell -c iwr',
+  '[Reflection.Assembly]::Load',
   'Add-MpPreference -ExclusionPath',
   'Add-MpPreference -ExclusionExtension',
   'Add-MpPreference -ExclusionProcess',
@@ -117,7 +119,9 @@ $IOCPatterns = ('jndi:ldap:',
   'bitsadmin /transfer',
   'Start-BitsTransfer -Source',
   'VBscript.Encode',
-  'Wscript.Shell')
+  'WScript.Shell',
+  'WScriptShell.CreateShortcut',
+  'WScriptShell.SpecialFolders')
 
 $temp = ''
 $log4j_processtemp = ''
