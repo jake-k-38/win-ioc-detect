@@ -126,7 +126,8 @@ $IOCPatterns = ('jndi:ldap:',
   'msdt.exe',
   'PCWDiagnostic',
   'ms-msdt:-id',
-  'ms-msdt:/id')
+  'ms-msdt:/id',
+  'ms-msdt:/id PCWDiagnostic /skip force /param')
 
 $temp = ''
 $log4j_processtemp = ''
