@@ -122,7 +122,11 @@ $IOCPatterns = ('jndi:ldap:',
   'VBscript.Encode',
   'WScript.Shell',
   'WScriptShell.CreateShortcut',
-  'WScriptShell.SpecialFolders')
+  'WScriptShell.SpecialFolders',
+  'msdt.exe',
+  'PCWDiagnostic',
+  'ms-msdt:-id',
+  'ms-msdt:/id')
 
 $temp = ''
 $log4j_processtemp = ''
