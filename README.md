@@ -1,4 +1,4 @@
-# win-log4shell-detect
+# win-ioc-detect
 Powershell Log4j Exploit detection
 https://gmuisg.org/log4j-detect/
 ## Table of contents
