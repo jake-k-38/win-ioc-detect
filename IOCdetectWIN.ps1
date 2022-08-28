@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Log4Shell Powershell Windows Detection Script
+Common IOC Powershell Detection Script
 .DESCRIPTION
 Uses known Log4JShell IOC strings and common exploit patterns in APTs to find signs of compromise on a windows machine. Script will quickly check for obfuscation and Base64 encoding.
 The script will search through the following event viewer logs:
@@ -9,7 +9,7 @@ The script will search through the following event viewer logs:
 (AD FS/Admin RequestReceivedSuccessAudit) Audit event 403
 REQUIRES POWERSHELL MODULE Get-Base64RegularExpression DOWNLOAD @ https://www.leeholmes.com/searching-for-content-in-base-64-strings/
 .EXAMPLE
-PS> . .\win-log4shell-detect.ps1
+PS> . .\IOCdetectWIN.ps1
 Run the script with default settings
 .NOTES
 .Author: James Kelly
@@ -30,8 +30,8 @@ https://gmuisg.org
 # You can add IOC patterns as the obfuscation of the reverse shells get tougher and more sophisticated
 
 $datestring = (Get-Date).ToString('s').Replace(':','-')
-$savedir = 'C:\ioc_log4jScan_' + $datestring + '.txt'
-$savedir2 = 'C:\ioc_log4jScanBase64_' + $datestring + '.txt'
+$savedir = 'C:\ioc_Scan_' + $datestring + '.txt'
+$savedir2 = 'C:\ioc_ScanBase64_' + $datestring + '.txt'
 
 $outputGrid = 'True'
 $saveToFile = 'False'
