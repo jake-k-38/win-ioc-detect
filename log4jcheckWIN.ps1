@@ -50,6 +50,12 @@ $taskfilter = @{
   StartTime = [datetime]::Now.AddHours(-24) #How far to look back in logs
 }
 
+$winavfilter = @{
+	LogName = 'Microsoft-Windows-Windows Defender/Operational'
+	ID = 5007 #Defender modifications
+	StartTime = [datetime]::Now.AddHours(-24)
+}
+
 $adfsfilter = @{
   LogName = 'AD FS/Admin'
   ID = 403 #RequestReceivedSuccessAudit
@@ -91,6 +97,8 @@ $IOCPatterns = ('jndi:ldap:',
   'Add-MpPreference -ExclusionPath',
   'Add-MpPreference -ExclusionExtension',
   'Add-MpPreference -ExclusionProcess',
+  'HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions',
+  'HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Real-Time Protection\\DisableRealtimeMonitoring',
   'IEX (New-Object Net.WebClient).DownloadString',
   '-NonInteractive',
   '-NoLogo',
@@ -132,6 +140,7 @@ $IOCPatterns = ('jndi:ldap:',
 $temp = ''
 $log4j_processtemp = ''
 $log4j_adtemp = ''
+$ioc_winav = ''
 $ioc_task = ''
 $ioc_base64 = ''
 $log4j_base64 = ''
@@ -155,7 +164,7 @@ filter MultiSelect-String ([string[]]$Patterns) {
   foreach ($Pattern in $Patterns) {
     if ($_ | Select-String 'Task Name') { $temp = $_ } #filter ScheduledTasks and save name
     if ($_ | Select-String -AllMatches -Pattern $Pattern) {
-      if ($temp -ne "") { $temp }
+      if ($temp -ne "") { $temp } #skip SchTask
       $_ #We found a match!
       $temp = ''
     } elseif ($obfusString | Select-String -AllMatches -Pattern $Pattern) { #check if hidden strings
@@ -182,6 +191,7 @@ filter MultiSelect-Base64String ([string[]]$Patterns) {
 Write-Warning ("Checking for suspicious log4j events/IOCs (EventID 4688, EventID 4698, ADFS 403):")
 $log4j_processtemp = Get-WinEvent -FilterHashtable $processfilter -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Message | MultiSelect-String $IOCPatterns
 $ioc_task = Get-WinEvent -FilterHashtable $taskfilter -ErrorAction SilentlyContinue | Select-Object -Property * | Out-String -Stream | Select-String -Pattern 'Task Name','<Hidden>','<Command>','<Arguments>' | MultiSelect-String $IOCPatterns
+$winav = Get-WinEvent -FilterHashtable $winavfilter -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Message | MultiSelect-String $IOCPatterns
 if ($scanADFSLogs -eq 'True') { $log4j_adtemp = Get-WinEvent -FilterHashtable $adfsfilter -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Message | MultiSelect-String $IOCPatterns }
 
 Write-Warning ("Checking for suspicious Base64 encoded log4j events/IOCs:")
@@ -193,6 +203,7 @@ if ($outputGrid -eq 'True') {
   if ($log4j_processtemp -ne '') { $log4j_processtemp | Out-GridView -Title 'IOCs EventID 4688' }
   if ($log4j_adtemp -ne '') { $log4j_adtemp | Out-GridView -Title 'IOCs ADFS 403' }
   if ($ioc_task -ne '') { $ioc_task | Out-GridView -Title 'IOCs EventID 4698' }
+  if ($winav -ne '') { $winav | Out-GridView -Title 'WinAv IOCs EventID 5007' }
   if ($log4j_base64 -ne '') { $log4j_base64 | Out-GridView -Title 'Base64 IOCs EventID 4688' }
   if ($ioc_base64 -ne '') { $ioc_base64 | Out-GridView -Title 'Base64 IOCs EventID 4698' }
   if ($log4j_base64ad -ne '') { $log4j_base64ad | Out-GridView -Title 'Base64 IOCs ADFS 403' }
@@ -202,6 +213,7 @@ if ($saveToFile -eq 'True') {
   if ($log4j_processtemp -ne '') { $log4j_processtemp | Out-File -Append -FilePath $savedir }
   if ($log4j_adtemp -ne '') { $log4j_adtemp | Out-File -Append -FilePath $savedir }
   if ($ioc_task -ne '') { $ioc_task | Out-File -Append -FilePath $savedir }
+  if ($winav -ne '') { $winav | Out-File -Append -FilePath $savedir }
   if ($log4j_base64 -ne '') { $log4j_base64 | Out-File -Append -FilePath $savedir2 }
   if ($ioc_base64 -ne '') { $ioc_base64 | Out-File -Append -FilePath $savedir2 }
   if ($log4j_base64ad -ne '') { $log4j_base64ad | Out-File -Append -FilePath $savedir2 }
