@@ -51,9 +51,9 @@ $taskfilter = @{
 }
 
 $winavfilter = @{
-	LogName = 'Microsoft-Windows-Windows Defender/Operational'
-	ID = 5007 #Defender modifications
-	StartTime = [datetime]::Now.AddHours(-24)
+  LogName = 'Microsoft-Windows-Windows Defender/Operational'
+  ID = 5007 #Defender modifications
+  StartTime = [datetime]::Now.AddHours(-24)
 }
 
 $adfsfilter = @{
@@ -105,6 +105,8 @@ $IOCPatterns = ('jndi:ldap:',
   '-ExecutionPolicy bypass',
   '-encodedcommand',
   '-enc',
+  '(nslookup -q=txt)[-1]', #way to avoid iex and web request through webpage with code twitter @Alh4zr3d
+  'nslookup -q=txt',
   'C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp',
   '\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup',
   'base64_encode',
