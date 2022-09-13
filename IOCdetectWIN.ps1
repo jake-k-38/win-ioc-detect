@@ -90,6 +90,7 @@ $IOCPatterns = ('jndi:ldap:',
   '-WindowStyle Hidden',
   'powershell/w 01',
   'powershell/w 01 /ep 0/nop/c',
+  'powershell -noP -sta -w 1 -enc',
   'powershell.exe -exec bypass',
   'powershell -c iex',
   'powershell -c iwr',
@@ -105,8 +106,10 @@ $IOCPatterns = ('jndi:ldap:',
   '-ExecutionPolicy bypass',
   '-encodedcommand',
   '-enc',
+  'powershell . (nslookup -q=txt)', #way to avoid iex and web request through webpage with code twitter @Alh4zr3d
+  '& powershell (nslookup -q=txt)', #way to avoid iex and web request through webpage with code twitter @Alh4zr3d
   '(nslookup -q=txt)[-1]', #way to avoid iex and web request through webpage with code twitter @Alh4zr3d
-  'nslookup -q=txt',
+  'nslookup -q=txt', #way to avoid iex and web request through webpage with code twitter @Alh4zr3d
   'C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp',
   '\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup',
   'base64_encode',
