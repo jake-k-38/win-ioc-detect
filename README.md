@@ -7,10 +7,9 @@ https://gmuisg.org/log4j-detect/
 * [Usage](#usage)
 
 ## General info
-The script will swiftly search Windows event viewer logs (such as new process creation, new scheduled tasks, and ADFS logs) for any signs of log4shell or exploitation attempts. The script will look for obfuscated Base64 strings as well as known log4shell detection strings in the wild.
-Feel free to add custom IOC patterns as the reverse shells' obfuscation becomes tougher and more obfuscated. 
+The script will swiftly inspect Windows event viewer logs for any indicators of log4shell or exploitation attempts (such as new process creation, new scheduled tasks, and ADFS logs). The script will look for obfuscated Base64 texts as well as known log4shell/Common APT execution patterns in the wild. 
 
-TL;DR the script will search common event viewer logs for exploitation attempts.
+TL;DR the script will search common event viewer logs for exploitation attempts on machine.
 	
 ## Getting started
 To run this project, extract it to a local directory then open an Administrator powershell<br />
