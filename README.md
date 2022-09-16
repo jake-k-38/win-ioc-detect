@@ -16,7 +16,7 @@ TL;DR the script will search common event viewer logs for exploitation attempts.
 To run this project, extract it to a local directory then open an Administrator powershell<br />
 ```
 Install-Script Get-Base64RegularExpression.ps1 
-set-executionpolicy remotesigned
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
 ```
 Keep in mind the script requires certain security audit logging enabled to function!!<br />
 
