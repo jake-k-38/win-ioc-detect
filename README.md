@@ -7,7 +7,7 @@ https://gmuisg.org/log4j-detect/
 * [Usage](#usage)
 
 ## General info
-The script will swiftly inspect Windows event viewer logs for any indicators of log4shell or exploitation attempts (such as new process creation, new scheduled tasks, and ADFS logs). The script will look for obfuscated Base64 texts as well as known log4shell/Common APT execution patterns in the wild. 
+The script will swiftly inspect Windows event viewer logs for any indicators of exploitation attempts (such as new process creation, new scheduled tasks, WinAV, Audit policy, and WinPS). The script will look for obfuscated Base64 common APT execution patterns in the wild. 
 
 TL;DR the script will search common event viewer logs for exploitation attempts on machine.
 	
@@ -37,3 +37,5 @@ Get-Base64RegularExpression https://www.leeholmes.com/searching-for-content-in-b
 https://www.lansweeper.com/report/log4j-event-log-audit/
 
 Got the idea from https://github.com/Neo23x0/log4shell-detector
+
+To-do Apply ruleset generic; https://github.com/SigmaHQ/sigma and accept .evtx input for offline forensic scanning
