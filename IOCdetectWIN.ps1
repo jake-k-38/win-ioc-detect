@@ -48,7 +48,8 @@ $scanBase64Tasks = $True #You can enable/disable these
 $scanBase64WinAV = $True #You can enable/disable these
 $scanBase64WinPS = $False #You can enable/disable these *keep in mind speed will go down
 
-$IOCPatterns=$ioc_process=$ioc_winps=$ioc_winav=$ioc_task=$ioc_netshare=$ioc_taskbase64=$ioc_winpsbase64=$ioc_winavbase64=$ioc_processbase64=$ioc_foundbase64=$processfilter=$auditpolicyfilter=$taskfilter=$winavfilter=$winpsfilter=$netsharefilter = ''
+$IOCPatterns=$ioc_process=$ioc_winps=$ioc_winav=$ioc_task=$ioc_netshare=$ioc_winpsbase64=$ioc_winavbase64=$ioc_processbase64=$processfilter=$auditpolicyfilter=$taskfilter=$winavfilter=$winpsfilter=$netsharefilter = ''
+$ioc_taskbase64 = New-Object System.Collections.ArrayList
 $savedir = $saveDirMaster + $datestring + '.txt'
 $savedir2 = $saveDirMaster + $datestring + '.txt' 
 $Width = -1 * ((Measure-Object -Maximum length).maximum + 1) 
@@ -130,6 +131,7 @@ $IOCPatterns = @(
     ';iex\(',                                      # PowerShell IEX
     'schtasks(?s).*/create(?s).*AppData',          # Scheduled task creation pointing to AppData
     '<Hidden>true</Hidden>',                       # Hidden Tasks
+    'attrib +H',                                   # Hidden files
     'cmd /c schtasks /create /tn',                 # Create tasks using cmd /c
     'cmd /c schtasks /delete /tn',                 # Delete tasks using cmd /c
     ' comsvcs.dll,MiniDump',                       # Process dumping method apart from procdump
@@ -200,80 +202,46 @@ $IOCPatterns = @(
     '[System.Diagnostics.Eventing.Reader.EventLogSession]::GlobalSession.ClearLog'
 )
 
-$Base64DecodeIOCPatterns = (
-  'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings',
-  'Invoke-Expression',
-  'Invoke-WebRequest',
-  'Get-ComputerInfo',
-  'EICAR-STANDARD-ANTIVIRUS-TEST-FILE',
-  '[Reflection.Assembly]::Load',
-  'IntPtr my_virt_alloc_pointer = VirtualAlloc',
-  'wmic /namespace:\\root\\SecurityCenter2 path AntiVirusProduct get * /value',
-  'Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct',
-  'Add-MpPreference -ExclusionPath',
-  'Add-MpPreference -ExclusionExtension',
-  'Add-MpPreference -ExclusionProcess',
-  'IEX (New-Object Net.WebClient).DownloadString',
-  'rundll32.exe javascript:',
-  'rundll32.exe C:\Windows\system32\davclnt.dll,DavSetCookie', #load DLLs and modules of program
-  'New-Object Net.WebClient',
-  'New-Object System.Net.WebClient',
-  '.downloadstring\(',                          
-  '.downloadfile\(',                             
-  'FromBase64String',
-  'New-Object IO.Compression.GzipStream',
-  'C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp',
-  '\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup',
-  'base64_encode',
-  'base64_decode',
-  'cmd.exe /Q /c start',
-  'Scriptrunner.exe',
-  'Cscript.exe',
-  'WScript.exe',
-  'regsvr32.exe',
-  'net.exe',
-  'at.exe \\',
-  '\\*\\C$',
-  'tasklist',
-  'netsh advfirewall',
-  'wmic process call create',
-  'wmic /node',
-  'msiexec /q /i',
-  'wevtutil.exe cl',
-  'certutil -urlcache -split -f',
-  'bitsadmin.exe',
-  'bitsadmin /SetNotifyCmdLine',
-  'bitsadmin /addfile',
-  'bitsadmin /transfer',
-  'Start-BitsTransfer -Source',
-  'VBscript.Encode',
-  'WScript.Shell',
-  'WScriptShell.CreateShortcut',
-  'WScriptShell.SpecialFolders',
-  'msdt.exe',
-  'mshta.exe',
-  'PCWDiagnostic',
-  'ms-msdt:-id',
-  'ms-msdt:/id',
-  'ms-msdt:/id PCWDiagnostic /skip force /param',
-  'Set-ExecutionPolicy',
-  'pypykatz live lsa --method handledup', #detect runasppl bypass
-  'mimikatz.exe',
-  'Mimikatz',
-  'powercat',
-  'EncodedCommand',
-  'Payload',
-  'Find-PSServiceAccounts',
-  'Get-PSADForestKRBTGTInfo',
-  'Discover-PSMSSQLServers',
-  'Discover-PSMSExchangeServers',
-  'Get-PSADForestInfo',
-  'Get-KerberosPolicy',
-  'Discover-PSInterestingServices')
+function Test-Base64 {
+  param(
+    [Parameter(ValueFromPipeline)] 
+    [string] $String
+  )
+  process {
+    try { $null=[Convert]::FromBase64String($String); $true } catch { $false }
+  }
+}
+
+filter DecodeB64 {
+  return [Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($extractedBase64))
+}
+
+filter CommandLine-ConvertBase64String {
+  if($_.CommandLine -eq '') {return} #skip if no args
+  $regex = '\s+([A-Za-z0-9+/]{20}\S+$)' #extract base64 backup regex if issues come up ^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$
+  $extractedBase64 = $_.CommandLine | Select-String -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value}
+  if(!(Test-Base64 $extractedBase64)) {return} #test to see if valid base64 string
+  $extractedBase64 | DecodeB64 #send extracted b64 to decode filter
+}
+
+filter TaskContent-ConvertBase64String {
+  $regex = '\s+([A-Za-z0-9+/]{20}\S+$)' #extract base64
+  $extractedBase64 = $_ | Select-String -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value}
+  if(!(Test-Base64 $extractedBase64)) {return}
+  $extractedBase64 | DecodeB64
+}
+
+filter WinDef-ConvertBase64String {
+  if($_.CommandLine -eq '') {return} #skip
+  $regex = '\s+([A-Za-z0-9+/]{20}\S+$)' #extract base64
+  $extractedBase64 = $_.CommandLine | Select-String -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value}
+  if(!(Test-Base64 $extractedBase64)) {return}
+  $extractedBase64 | DecodeB64
+}
 
 filter MultiSelect-String ([string[]]$Patterns) {
   foreach ($Pattern in $Patterns) { # Check the current item against all patterns.
-	  $foundPattern = $_ -match $Pattern #Optimize var cache 
+	  $foundPattern = $_ | Select-String -Pattern $Pattern -AllMatches #Optimize var cache 
     if ($foundPattern) { # If one of the patterns does not match, continue checking same item.
       $_ #We found a match!
     } else {
@@ -282,21 +250,7 @@ filter MultiSelect-String ([string[]]$Patterns) {
   }
 }
 
-filter MultiSelect-Base64String ([string[]]$Patterns) {
-  foreach ($Pattern in $Patterns) { # Check the current item against all patterns.
-    $regex = (Get-Base64RegularExpression $Pattern) #Optimize var cache
-    $foundPattern = $_ -match $regex
-    if ($foundPattern) { # If one of the patterns does not match, continue checking same item.
-      $_ #We found a match!
-      if($_.CommandLine -ne '') { $_.CommandLine = $Pattern }
-      Write-Warning ("*BASE64 FOUND* Matched: {0,$Width} {1}" -f $Pattern,$_)
-    } else { #Keep scanning
-      continue
-    }
-  }
-}
-
-Write-Warning ("Checking for suspicious events/IOCs (Events: *Process* 4688, *Tasks* 4698, *Win Defender* 5007):")
+Write-Warning ("Checking for suspicious events/IOCs (Events: *Process* 4688, *Tasks* 4698, *Win Defender* 5007, *Network share accessed 5140* ):")
 if ($scanWinProcess) { $ioc_process = Get-WinEvent -FilterHashtable $processfilter -ErrorAction SilentlyContinue | Select-Object TimeCreated,@{name='User';expression={ $_.Properties[1].Value }},@{name='ParentProcessName';expression={ $_.Properties[13].Value }},@{name='NewProcessName';expression={ $_.Properties[5].Value }}, @{name='CommandLine';expression={ $_.Properties[8].Value }} | MultiSelect-String $IOCPatterns }
 if ($scanWinAudit) { $ioc_auditpolicy = Get-WinEvent -FilterHashtable $auditpolicyfilter -ErrorAction SilentlyContinue | Select-Object TimeCreated, Message | MultiSelect-String $IOCPatterns }
 if ($scanWinTask) { $ioc_task = Get-WinEvent -FilterHashtable $taskfilter -ErrorAction SilentlyContinue | Select-Object TimeCreated,@{name='TaskName';expression={ $_.Properties[4].Value }}, @{name='TaskContent';expression={ $_.Properties[5].Value }} | MultiSelect-String $IOCPatterns }
@@ -306,10 +260,18 @@ if ($scanWinShare) {$ioc_netshare = Get-WinEvent -FilterHashtable $netsharefilte
 
 #Base64 section
 Write-Warning ("Checking for suspicious Base64 encoded events/IOCs:")
-if ($scanBase64Process) { $ioc_processbase64 = ($ioc_process | MultiSelect-Base64String $Base64DecodeIOCPatterns) }
-if ($scanBase64Tasks) { $ioc_taskbase64 = ($ioc_task | MultiSelect-Base64String $Base64DecodeIOCPatterns) }
-if ($scanBase64WinAV) { $ioc_winavbase64 = ($ioc_winav | MultiSelect-Base64String $Base64DecodeIOCPatterns) }
-if ($scanBase64WinPS) { $ioc_winpsbase64 = ($ioc_winps | MultiSelect-Base64String $Base64DecodeIOCPatterns) }
+
+#(Get-WinEvent -FilterHashtable $taskfilter -ErrorAction SilentlyContinue | Select-Object * | Out-String -Stream | Select-String -Pattern '<Command>', '<Arguments>', '</Arguments>') -replace '\s\s+', '' -replace '</Arguments>', '' | TaskContent-ConvertBase64String } #WIP does not work (Get-WinEvent -FilterHashtable $taskfilter -ErrorAction SilentlyContinue | Select-Object * | Out-String -Stream | Select-String -Pattern '<Command>', '<Arguments>', '</Arguments>') -replace '\s\s', '' | Select-String -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value}
+
+if ($scanBase64Process) { $ioc_processbase64 = ($ioc_process | CommandLine-ConvertBase64String) } #works decodes stuff
+if ($scanBase64Tasks) { #working great
+  foreach($task in $ioc_task){
+    $entry = [xml]$task.TaskContent
+    $ioc_taskbase64.Add(($entry.Task.Actions.Exec.Arguments | TaskContent-ConvertBase64String))
+  }
+}
+if ($scanBase64WinAV) { $ioc_winavbase64 = ($ioc_winav | WinDef-ConvertBase64String) } #WIP does not work
+if ($scanBase64WinPS) { $ioc_winpsbase64 = ($ioc_winps | MultiSelect-ConvertBase64String) } #WIP does not work
 
 if ($outputGrid) {
   if ($ioc_process -ne '') { $ioc_process | Out-GridView -Title 'IOCs EventID 4688/1102' }
