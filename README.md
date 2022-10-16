@@ -10,6 +10,8 @@ https://gmuisg.org/log4j-detect/
 The script will swiftly inspect Windows event viewer logs for any indicators of exploitation attempts (such as new process creation, new scheduled tasks, WinAV, Audit policy, and WinPS). The script will look for obfuscated Base64 common APT execution patterns in the wild. 
 
 TL;DR the script will search common event viewer logs for exploitation attempts on machine.
+
+![snip1](https://github.com/jake-k-38/win-ioc-detect/blob/main/images/screenshot_1.png?raw=true)
 	
 ## Getting started
 To run this project, extract it to a local directory then open an Administrator powershell<br />
@@ -38,4 +40,4 @@ https://www.lansweeper.com/report/log4j-event-log-audit/
 
 Got the idea from https://github.com/Neo23x0/log4shell-detector
 
-To-do Apply ruleset generic; https://github.com/SigmaHQ/sigma and accept .evtx input for offline forensic scanning
+To-do accept .evtx input for offline forensic scanning
