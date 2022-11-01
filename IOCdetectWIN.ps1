@@ -1,3 +1,4 @@
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
 Common IOC Powershell Detection Script
@@ -43,12 +44,6 @@ $ioc_taskbase64 = New-Object System.Collections.ArrayList
 $savedir = $saveDirMaster + $datestring + '.txt'
 $savedir2 = $saveDirMaster + $datestring + '.txt' 
 $Width = -1 * ((Measure-Object -Maximum length).maximum + 1) 
-
-if(!([bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544"))){ #detect if powershell running as admin, if not reduce scanning to WinAV and 
-  Write-Warning('**Please run script as Administrator**')
-  return
-}
-
 
 $processfilter = @{
   LogName = 'Security'
@@ -103,6 +98,7 @@ $IOCPatterns = @(
     'powershell -command',                         # Often used in malicious PowerShell commands
     'powershell -c iex',                           # Often used in malicious PowerShell commands
     'powershell -c iwr',                           # Often used in malicious PowerShell commands
+    '[\-|\/|–|—|―][Ee^]{1,2}[NnCcOoDdEeMmAa^]+\s+[A-Za-z0-9+/=]{5,}', # Often used in malicious PowerShell commands got regex from https://github.com/splunk/security_content/blob/develop/detections/endpoint/malicious_powershell_process___encoded_command.yml
     ' -decode ',                                   # Used with certutil
     ' /decode ',                                   # Used with certutil 
     ' -e(?s).*JAB',                                # PowerShell encoded commands
@@ -148,6 +144,8 @@ $IOCPatterns = @(
     'cmd.exe /C(?s).*\\\\Temp\\',                  # atexec.py  https://github.com/SecureAuthCorp/impacket/blob/master/examples/atexec.py#L122
     'cmd.exe /Q /c start',
     'cmd.exe /Q /c',
+    'C:\\Users\\.*?\\AppData\\[^\\].*?\bstart\b',  #WIP maybe add .js .exe, etc https://stackoverflow.com/questions/37750620/regular-expression-for-folder-path
+    '/c copy C:\Windows\System32\cmd.exe ',
     '%COMSPEC%',
     'powershell . (nslookup -q=txt)',              # way to avoid iex and web request through webpage with code twitter @Alh4zr3d
     '& powershell (nslookup -q=txt)',              # way to avoid iex and web request through webpage with code twitter @Alh4zr3d
@@ -181,6 +179,7 @@ $IOCPatterns = @(
     'pypykatz live lsa --method handledup',
     'Get-EventLog -LogName * | ForEach { Clear-EventLog $_.Log',
     'Get-WinEvent -ListLog * -Force | % { Wevtutil.exe cl $_.LogName }',
+    'wevtutil cl',
     'Clear-EventLog',
     '[System.Diagnostics.Eventing.Reader.EventLogSession]::GlobalSession.ClearLog'
     'The audit log was cleared.',
@@ -225,9 +224,8 @@ filter MultiSelect-String ([string[]]$Patterns) {
 	  $foundPattern = $_ | Select-String -Pattern $Pattern -AllMatches #Optimize var cache 
     if ($foundPattern) { # If one of the patterns does not match, continue checking same item.
       $_ #We found a match!
-    } else {
-      continue
     }
+    continue
   }
 }
 
@@ -266,10 +264,10 @@ if ($outputGrid) {
 if ($saveToFile) {
   if ($ioc_process -ne '') { $ioc_process | Select-Object * | Out-File -Append -FilePath $savedir }
   if ($ioc_auditpolicy -ne '') { $ioc_auditpolicy | Select-Object -ExpandProperty Message | Out-File -Append -FilePath $savedir }
-  if ($ioc_task -ne '') { $ioc_task | Select-Object * | Out-File -Append -FilePath $savedir }
+  if ($ioc_task -ne '') { $ioc_task | Select-Object -ExpandProperty TaskContent | Out-File -Append -FilePath $savedir }
   if ($ioc_winps -ne '') { $ioc_winps | Out-File -Append -FilePath $savedir }
   if ($ioc_winav -ne '') { $ioc_winav | Select-Object -ExpandProperty Message | Out-File -Append -FilePath $savedir }
   if ($ioc_netshare -ne '') { $ioc_netshare | Out-File -Append -FilePath $savedir }
-  if ($ioc_processbase64 -ne '') { $ioc_processbase64 | Select-Object * | Out-File -Append -FilePath $savedir2 }
-  if ($ioc_taskbase64 -ne '') { $ioc_taskbase64 | Select-Object * | Out-File -Append -FilePath $savedir2 }
+  if ($ioc_processbase64 -ne '') { $ioc_processbase64  | Out-File -Append -FilePath $savedir2 }
+  if ($ioc_taskbase64 -ne '') { $ioc_taskbase64 | Out-File -Append -FilePath $savedir2 }
 }
