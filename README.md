@@ -32,8 +32,10 @@ Simply just run the script win-ioc-detect.ps1 to scan live system logs- or scan 
 ```
 ## Notes
 
-Got the idea from https://github.com/Neo23x0/log4shell-detector
-https://github.com/sans-blue-team/DeepBlueCLI
-https://github.com/CrowdStrike/Forensics
+Got the ideas from
+https://github.com/Neo23x0/log4shell-detector<br>
+https://github.com/sans-blue-team/DeepBlueCLI<br>
+https://github.com/CrowdStrike/Forensics<br>
+https://github.com/dfirale/evtscanner
 
 To-Do add Sysmon support in addition, with default audit policy
