@@ -11,8 +11,7 @@ The script scans Windows event viewer logs for indicators of exploitation attemp
 
 TL;DR the script will search common event viewer logs for exploitation attempts on machine or scan a local .evtx file.
 
-![snip1](https://github.com/jake-k-38/win-ioc-detect/blob/main/images/screenshot_1.png?raw=true)
-![snip1](https://github.com/jake-k-38/win-ioc-detect/blob/main/images/screenshot_2.png?raw=true)
+![snip1](https://github.com/jake-k-38/win-ioc-detect/blob/main/images/screenshot_2.PNG?raw=true)
 	
 ## Getting started
 Keep in mind the script requires certain security audit logging enabled to function and extract suspicious activity!!<br />
