@@ -16,6 +16,11 @@ TL;DR the script will search common event viewer logs for exploitation attempts 
 ## Getting started
 Keep in mind the script requires certain security audit logging enabled to function and extract suspicious activity!!<br />
 
+To run this project, extract it to a local directory then open an Administrator powershell terminal:
+```
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
+```
+
 <b>REQUIRES Audit Process Creation logging. Audit event 4688(S): "A new process has been created"<br />
 Configure/Enable the following: "Administrative Templates\System\Audit Process Creation" 'Include command line in process creation events'<br />
 REQUIRES PowerShell Script Block Logging Audit event 4104(S): "Verbose; Microsoft-Windows-PowerShell/Operational"<br />
