@@ -1,6 +1,6 @@
 # win-ioc-detect
-Powershell IOC Exploit detection
-https://gmuisg.org/log4j-detect/
+Powershell IOC Exploit detection <br>
+Scan the live system or a local evtx file
 ## Table of contents
 * [General info](#general-info)
 * [Getting started](#getting-started)
