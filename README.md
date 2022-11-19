@@ -14,6 +14,12 @@ TL;DR the script will search common event viewer logs for exploitation attempts 
 ![snip1](https://github.com/jake-k-38/win-ioc-detect/blob/main/images/screenshot_2.PNG?raw=true)
 	
 ## Getting started
+Users may need to change the default PowerShell execution policy. This can be achieved in a number of different ways:<br />
+
+Open a command prompt and run ```powershell.exe -ExecutionPolicy Unrestricted``` and run scripts from that PowerShell session.<br />
+Open a PowerShell prompt and run ```Set-ExecutionPolicy Unrestricted -Scope Process``` and run scripts from the current PowerShell session.<br />
+Open an administrative PowerShell prompt and run ```Set-ExecutionPolicy Unrestricted``` and run scripts from any PowerShell session.<br />
+
 Keep in mind the script requires certain security audit logging enabled to function and extract suspicious activity!!<br />
 
 <b>REQUIRES Audit Process Creation logging. Audit event 4688(S): "A new process has been created"<br />
